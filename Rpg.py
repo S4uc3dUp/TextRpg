@@ -2,12 +2,21 @@ import os
 import random
 import sys
 
-import Enemy
-import Weapon
-from Player import *
+# I have made a new folder inside called "textrpg" which has __init__.py script
+# This tells python that folder is a module and you can freely import from it
 
-global enemy
-global weapon
+from textrpg import enemies
+#from textrpg import Weapon
+
+# Never use import *, this will probably give you more trouble than anything
+# Import just object you want to manipulate in this case its Hero, which is an instance of class Player
+
+from textrpg.store import store_weapons
+from textrpg.player import Hero 
+from textrpg.enemies import enemies
+
+#global enemy
+#global weapon
 
 
 def main():
@@ -31,21 +40,34 @@ def start():
     clear()
     print("\nHello, what is your name?")
     Hero.name = input(">> ")
+    Hero.set_up_hero()
     start1()
 
 
 def start1():
-    clear()
+    #clear()
+
+    # There are easyer way to format a string
+
+    #print("\n")
+    #print("Hero Name: %s " % Hero.name)
+    #print("Level: %i " % Hero.level)
+    #print("Experience: %i " % Hero.exp)
+    #print("Health: %i/%i " % (Hero.health, Hero.maxhealth))
+    #print("Gold: %d " % Hero.gold)
+    #print("Potions: %d " % Hero.potions)
+    #print("Attack: %i " % Hero.attack)
+    #print("Weapon: %s " % Hero.curweap)
 
     print("\n")
-    print("Hero Name: %s " % Hero.name)
-    print("Level: %i " % Hero.level)
-    print("Experience: %i " % Hero.exp)
-    print("Health: %i/%i " % (Hero.health, Hero.maxhealth))
-    print("Gold: %d " % Hero.gold)
-    print("Potions: %d " % Hero.potions)
-    print("Attack: %i " % Hero.attack)
-    print("Weapon: %s " % Hero.curweap)
+    print(f"Hero Name: {Hero.name}") 
+    print(f"Level: {Hero.base_level} ")
+    print(f"Experience: {Hero.exp}/{Hero.max_exp}")
+    print(f"Health: {Hero.health}/{Hero.maxhealth}")
+    print(f"Gold: {Hero.gold}")
+    print(f"Potions: {Hero.potions}")
+    print(f"Attack: {Hero.attack_value}")
+    print(f"Weapon: {Hero.current_weapon.name}")
 
     print("\n")
     print("1:) Fight")
@@ -83,46 +105,62 @@ def pinventory():
 
 def equip():
     clear()
-    global weapon
+    #global weapon
     print("What do you want to equip?")
-    for weapon in Hero.weap:
-        print("%s " % weapon)
+    for number, weapon in enumerate(Hero.inventory):
+        print(f"{number+1}:) {weapon.name}")
     print("b.) to go back")
     option = input(">> ")
-    if option == Hero.curweap:
+
+    try:
+        option = int(option)
+        option -= 1
+    except ValueError:
+        pass
+
+    if option == Hero.current_weapon:
         print("you already have that weapon equipped")
         input(">> press enter to continue")
         equip()
     elif option == "b":
         pinventory()
-    elif option in Hero.weap:
-        Hero.curweap = option
-        print("You have equipped %s" % option)
+    elif option in range(len(Hero.inventory)):
+        Hero.current_weapon = Hero.inventory[option]
+        Hero.set_attack_value()
+        print(f"You have equipped {Hero.inventory[option].name}")
         input(">> press enter to continue ")
         equip()
     else:
         clear()
-        print("you don't have %s in your inventory" % option)
+        print(f"you don't have {Hero.inventory[option].name} in your inventory")
         input(">> press enter to continue")
         start1()
 
 
+def get_enemy():
+    enemy = random.choice(enemies)
+    return enemy
+
 def prefight():
-    global enemy
-    e_set = {'Goblin', 'Zombie', 'Skeleton'}
-    enemylist = random.choice(tuple(e_set))
+    while True:
+        enemy = get_enemy()
+        if enemy.min_hero_lvl > Hero.base_level:
+            pass
+        else:
+            break
 
-    if enemylist == 'Goblin':
-        enemy = Enemy.Goblin
-    elif enemylist == 'Zombie':
-        enemy = Enemy.Zombie
-    else:
-        enemy = Enemy.Skeleton
+#
+#    if enemylist == 'Goblin':
+#        enemy = Enemy.Goblin
+#    elif enemylist == 'Zombie':
+#        enemy = Enemy.Zombie
+#    else:
+#        enemy = Enemy.Skeleton
+#
+    fight(enemy)
 
-    fight()
 
-
-def fight():
+def fight(enemy):
     clear()
     print("%s is fighting %s " % (Hero.name, enemy.name))
     print("\n%s's Health: %d / %d      %s's Health: %i / %i" % (Hero.name, Hero.health, Hero.maxhealth,
@@ -137,18 +175,18 @@ def fight():
     option = input(">> ")
 
     if option == "1":
-        attack()
+        attack(enemy)
     elif option == "2":
         drinkpotion()
     elif option == "3":
-        run()
+        run(enemy)
     else:
-        fight()
+        fight(enemy)
 
 
-def attack():
+def attack(enemy):
     clear()
-    p_attack = random.randint(0, Hero.base_attack + Hero.attack)
+    p_attack = random.randint(0, Hero.base_attack)
     e_attack = random.randint(0, enemy.attack)
 
     if p_attack == 0:
@@ -157,7 +195,7 @@ def attack():
         enemy.health -= p_attack
         print("You deal %i damage! " % p_attack)
     if enemy.health <= 0:
-        win()
+        win(enemy)
 
     if e_attack == 0:
         print("The enemy missed!")
@@ -165,10 +203,10 @@ def attack():
         Hero.health -= e_attack
         print("The enemy deals %i damage" % e_attack)
     if Hero.health <= 0:
-        dead()
+        dead(enemy)
     else:
         input(">> Press enter to continue")
-        fight()
+        fight(enemy)
 
 
 def drinkpotion():
@@ -192,7 +230,7 @@ def drinkpotion():
             fight()
 
 
-def run():
+def run(enemy):
     clear()
     run_num = random.randint(1, 3)
 
@@ -212,14 +250,15 @@ def run():
             print("The enemy deals %i damage" % e_attack)
 
         if Hero.health <= 0:
-            dead()
+            dead(enemy)
         else:
             input(">> Press enter to continue ")
             fight()
 
 
-def win():
+def win(enemy):
     clear()
+    hero_level = Hero.base_level
     e_droppotion = random.randint(1, 4)
     e_weapondrop = random.randint(1, 5)
 
@@ -231,7 +270,7 @@ def win():
     print("you found %i gold!" % enemy.goldgain)
     print("You have gained %i experience" % enemy.expdrop)
 
-    if Hero.level:
+    if Hero.base_level:
         if enemy.name == "Skeleton":
             if e_droppotion == 1:
                 Hero.potions += e_droppotion
@@ -244,14 +283,15 @@ def win():
                     Hero.weap.append(Weapon.SmallKnife.name)
                     print("you found a %s " % Weapon.SmallKnife.name)
 
-    if Hero.level == 2:
-        print("you leveled up to 2!")
+    Hero.check_level_up()
+    if hero_level != Hero.base_level:
+        print(f"you leveled up to {Hero.base_level}!")
 
     input(">> Press enter to continue")
     start1()
 
 
-def dead():
+def dead(enemy):
     clear()
     g_amount = random.randint(1, 10)
     print("you have died")
@@ -276,31 +316,52 @@ def store():
     clear()
 
     print("Welcome to the shop!")
-    print("\nType the word of the item you would like to buy")
+    print("\nType the item number you would like to buy")
     print("\nWhat would you like to buy?\n")
 
-    print("Rusty Sword")
-    print("Dagger")
+    for number, item in enumerate(store_weapons):
+        print(f'{number+1}:) {item.name}')
+    #print("Rusty Sword")
+    #print("Dagger")
     print("\nb.) Go Back")
 
     option = input(">> ")
+
+    try:
+        option = int(option)
+        option -= 1
+    except ValueError:
+        pass
+
+
+    
     if option == "b":
         start1()
+    
+    if option in range(len(store_weapons)):
+        print(f'You would like to buy: {store_weapons[option].name}')
+        print(f'Price: {store_weapons[option].value}')
+        print(f'Damage: {store_weapons[option].damage}')
+        yes = input('Type y or n (yes or no): ')
 
-    if option in weapons:
-        if Hero.gold >= weapons[option]:
-            Hero.gold -= weapons[option]
-            print("You have bought %s" % option)
-            input(">> press enter to continue ")
-            Hero.weap.append(option)
-            start1()
+        if yes == 'y':
+            if Hero.gold >= store_weapons[option].value:
+                Hero.gold -= store_weapons[option].value
+                print(f"You have bought {store_weapons[option].name}")
+                input(">> press enter to continue ")
+                Hero.inventory.append(store_weapons[option])
+                start1()
+            else:
+                clear()
+                print("you don't have enough gold")
+                input(">> press enter to continue")
+                store()
         else:
             clear()
-            print("you don't have enough gold")
-            input(">> press enter to continue")
             store()
+
     else:
-        clear()
+        #clear()
         print("That item does not exist")
         input(">> press enter to continue")
         store()
