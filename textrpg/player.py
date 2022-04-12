@@ -3,15 +3,16 @@ from textrpg.store import Weapon
 
 class Player:
 
-    def __init__(self, name, maxhealth, health, base_attack, gold, potions, base_level, exp):
+    def __init__(self, name, maxhealth, health, base_attack, gold, base_level, exp):
         self.name = name
         self.maxhealth = maxhealth
         self.health = health
         self.base_attack = base_attack
         self.attack_value = self.base_attack
         self.gold = gold
-        self.potions = potions
+        #self.potions = potions
         self.inventory = []
+        self.potions = []
         self.current_weapon = None
         self.base_level = base_level
         self.exp = exp
@@ -31,7 +32,7 @@ class Player:
     # This is just 1 line with no repeating a code, which is how you should do it
     # Always make sure your code is DRY (dont repeat yourself)
     def set_attack_value(self):
-        self.attack_value += self.current_weapon.damage
+        self.attack_value = self.base_attack + self.current_weapon.damage
 
     #@property
     #def attack(self):
@@ -65,4 +66,4 @@ class Player:
     #    return level
 
 
-Hero = Player('name', maxhealth=100, health=100, base_attack=10, gold=0, potions=0, base_level=1, exp=0)
+Hero = Player('name', maxhealth=100, health=100, base_attack=10, gold=0, base_level=1, exp=0)
