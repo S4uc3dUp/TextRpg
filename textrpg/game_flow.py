@@ -229,14 +229,11 @@ class GameFlow:
         # First we get a random float from 0.0 to 1.0
         weapon_drop_chance = random.random()
         potion_drop_chance = random.random()
-        print(weapon_drop_chance)
-        print(potion_drop_chance)
 
         self.enemy.health = self.enemy.maxhealth
         self.hero.gold += self.enemy.goldgain
         self.hero.exp += self.enemy.expdrop
 
-        print()
         print(f"You have defeated the {self.enemy.name}")
         print(f"Enemy dropped {self.enemy.goldgain} gold!")
         print(f"You have gained {self.enemy.expdrop} experience")
